@@ -4,15 +4,17 @@
 #include <stdio.h>
 #include <time.h>
 #include <inttypes.h>
+#include <stdint-gcc.h>
 
-#define CYCLES_COUNT 100
+#define CYCLES_COUNT 1
+#define REPEAT(x) x; x;
 
 struct node {
 	struct node* next;
 	//struct node* PAD[NODE_SIZE - 1];
 };
 
-void build_list_conseq(void* head, uint32_t size, uint8_t node_size) {
+void build_list_conseq(void* head, uint32_t size, uint16_t node_size) {
 	struct node* current = head;
 
 	for (uint32_t i = 1; i < size; ++i) {
@@ -22,7 +24,7 @@ void build_list_conseq(void* head, uint32_t size, uint8_t node_size) {
 	current->next = head;
 }
 
-void build_list_random(void* head, uint32_t size, uint8_t node_size) {
+void build_list_random(void* head, uint32_t size, uint16_t node_size) {
 	struct node* current = head;
 	srand((unsigned int) time(NULL));
 
@@ -48,7 +50,7 @@ uint64_t measure(struct node* head, uint32_t size) {
 		uint64_t start = __rdtsc();
 
 		for (int j = 0; j < size; ++j) {
-			current = (*current).next;
+			REPEAT(REPEAT(REPEAT(REPEAT(REPEAT(REPEAT(REPEAT(REPEAT(current = (*current).next))))))))
 		}
 
 		uint64_t stop = __rdtsc();
@@ -56,10 +58,10 @@ uint64_t measure(struct node* head, uint32_t size) {
 	}
 	avg /= cycles;
 
-	return avg / size;
+	return avg / (size * 256);
 }
 
-void arg_parser(int argc, char** argv, uint8_t* list_size_pow, uint8_t* node_size, uint8_t* is_random) {
+void arg_parser(int argc, char** argv, uint8_t* list_size_pow, uint16_t* node_size, uint8_t* is_random) {
 	int c = 0;
 	while ((c = getopt(argc, argv, "rn:l:")) != -1)
 		switch (c) {
@@ -78,8 +80,8 @@ void arg_parser(int argc, char** argv, uint8_t* list_size_pow, uint8_t* node_siz
 }
 
 int main(int argc, char** argv) {
-	uint8_t list_size_pow = 1; //2^list_size_pow; < 32
-	uint8_t node_size = 1; //in words
+	uint8_t list_size_pow = 0; //2^list_size_pow; < 32
+	uint16_t node_size = 1; //in words
 	uint8_t is_random = 0;
 
 	arg_parser(argc, argv, &list_size_pow, &node_size, &is_random);
@@ -101,8 +103,8 @@ int main(int argc, char** argv) {
 		else
 			printf("Conseq: ");
 
-		printf("node = %d, list = %d, total = %uK\n", node_size, list_size, (node_size * list_size) >> 10);
-		printf("avg ticks = %" PRIu64 "\n", measure(list, list_size));
+		printf("node = %d, list pow = %d, total = %uK\n", node_size, list_size_pow, (node_size * list_size) >> 10);
+		printf("Avg ticks = %" PRIu64 "\n\n", measure(list, list_size));
 		free(list);
 	}
 	return 0;
