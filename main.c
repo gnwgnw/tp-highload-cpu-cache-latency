@@ -78,7 +78,7 @@ void arg_parser(int argc, char** argv, uint8_t* list_size_pow, uint8_t* node_siz
 }
 
 int main(int argc, char** argv) {
-	uint8_t list_size_pow = 20; //2^list_size_pow; < 32
+	uint8_t list_size_pow = 1; //2^list_size_pow; < 32
 	uint8_t node_size = 1; //in words
 	uint8_t is_random = 0;
 
