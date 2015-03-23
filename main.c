@@ -23,11 +23,6 @@ void build_list_conseq(void* head, uint32_t size, uint8_t node_size) {
 }
 
 void build_list_random(void* head, uint32_t size, uint8_t node_size) {
-	if (size == 1) {
-		((struct node*) head)->next = head;
-		return;
-	}
-
 	struct node* current = head;
 	srand((unsigned int) time(NULL));
 
