@@ -64,15 +64,18 @@ uint64_t measure(struct node* head, uint32_t size) {
 	return avg / size;
 }
 
-void arg_parser(int argc, char** argv, uint8_t* list_size_pow, uint8_t* node_size) {
+void arg_parser(int argc, char** argv, uint8_t* list_size_pow, uint8_t* node_size, uint8_t* is_random) {
 	int c = 0;
-	while ((c = getopt(argc, argv, "n:l:")) != -1)
+	while ((c = getopt(argc, argv, "rn:l:")) != -1)
 		switch (c) {
 			case 'l':
 				(*list_size_pow) = (uint8_t) atoi(optarg);
 		        break;
 			case 'n':
 				(*node_size) = (uint8_t) atoi(optarg);
+		        break;
+			case 'r':
+				(*is_random) = 1;
 		        break;
 			default:
 				exit(1);
@@ -82,18 +85,28 @@ void arg_parser(int argc, char** argv, uint8_t* list_size_pow, uint8_t* node_siz
 int main(int argc, char** argv) {
 	uint8_t list_size_pow = 20; //2^list_size_pow; < 32
 	uint8_t node_size = 1; //in words
+	uint8_t is_random = 0;
 
-	arg_parser(argc, argv, &list_size_pow, &node_size);
+	arg_parser(argc, argv, &list_size_pow, &node_size, &is_random);
 
 	node_size *= sizeof(struct node);
 	uint32_t list_size = (uint32_t) (1 << list_size_pow);
 
-	printf("node = %d, list = %d, total = %uK\n", node_size, list_size, (node_size * list_size) >> 10);
-
 	void* list = calloc(list_size, node_size);
 	if (list) {
-		build_list_random(list, list_size, node_size);
+		if (is_random)
+			build_list_random(list, list_size, node_size);
+		else
+			build_list_conseq(list, list_size, node_size);
+
 		printf("Build done\n");
+
+		if (is_random)
+			printf("Random: ");
+		else
+			printf("Conseq: ");
+
+		printf("node = %d, list = %d, total = %uK\n", node_size, list_size, (node_size * list_size) >> 10);
 		printf("avg ticks = %" PRIu64 "\n", measure(list, list_size));
 		free(list);
 	}
