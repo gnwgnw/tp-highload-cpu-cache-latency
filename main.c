@@ -5,7 +5,8 @@
 #include <time.h>
 #include <inttypes.h>
 
-#define CYCLES_COUNT 1000000
+#define ACCESS_CYCLES_COUNT 1000000
+#define AVG_CYCLES_COUNT 100
 
 struct node {
 	struct node* next;
@@ -43,15 +44,17 @@ uint64_t measure(struct node* head, uint32_t size) {
 	struct node* current = head;
 	uint64_t avg = 0;
 
-	uint64_t start = __rdtsc();
-	for (int i = 0; i < CYCLES_COUNT; ++i) {
-		current->data += 3;
-		current = current->next;
+	for (int i = 0; i < AVG_CYCLES_COUNT; ++i) {
+		uint64_t start = __rdtsc();
+		for (int j = 0; j < ACCESS_CYCLES_COUNT; ++j) {
+			current->data += 3;
+			current = current->next;
+		}
+		uint64_t stop = __rdtsc();
+		avg += (stop - start) / AVG_CYCLES_COUNT;
 	}
-	uint64_t stop = __rdtsc();
 
-	avg += stop - start;
-	avg /= CYCLES_COUNT;
+	avg /= ACCESS_CYCLES_COUNT;
 
 	return avg;
 }
