@@ -4,14 +4,12 @@
 #include <stdio.h>
 #include <time.h>
 #include <inttypes.h>
-#include <stdint-gcc.h>
 
-#define CYCLES_COUNT 1
-#define REPEAT(x) x; x;
+#define CYCLES_COUNT 1000000
 
 struct node {
 	struct node* next;
-	//struct node* PAD[NODE_SIZE - 1];
+	uint8_t data;
 };
 
 void build_list_conseq(void* head, uint32_t size, uint16_t node_size) {
@@ -44,21 +42,18 @@ void build_list_random(void* head, uint32_t size, uint16_t node_size) {
 uint64_t measure(struct node* head, uint32_t size) {
 	struct node* current = head;
 	uint64_t avg = 0;
-	int cycles = CYCLES_COUNT;
 
-	for (int i = 0; i < cycles; ++i) {
-		uint64_t start = __rdtsc();
-
-		for (int j = 0; j < size; ++j) {
-			REPEAT(REPEAT(REPEAT(REPEAT(REPEAT(REPEAT(REPEAT(REPEAT(current = (*current).next))))))))
-		}
-
-		uint64_t stop = __rdtsc();
-		avg += stop - start;
+	uint64_t start = __rdtsc();
+	for (int i = 0; i < CYCLES_COUNT; ++i) {
+		current->data += 3;
+		current = current->next;
 	}
-	avg /= cycles;
+	uint64_t stop = __rdtsc();
 
-	return avg / (size * 256);
+	avg += stop - start;
+	avg /= CYCLES_COUNT;
+
+	return avg;
 }
 
 void arg_parser(int argc, char** argv, uint8_t* list_size_pow, uint16_t* node_size, uint8_t* is_random) {
@@ -103,8 +98,8 @@ int main(int argc, char** argv) {
 		else
 			printf("Conseq: ");
 
-		printf("node = %d, list pow = %d, total = %uK\n", node_size, list_size_pow, (node_size * list_size) >> 10);
-		printf("Avg ticks = %" PRIu64 "\n\n", measure(list, list_size));
+		printf("node = %d, list pow = %d, total = %luK, ", node_size, list_size_pow, ((uint64_t) node_size * list_size) >> 10);
+		printf("Avg ticks = %" PRIu64 "\n", measure(list, list_size));
 		free(list);
 	}
 	return 0;
